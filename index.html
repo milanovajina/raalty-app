@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Запись на просмотр</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg-color: #1a1615;
+      --card-bg: #26201e;
+      --border-color: #3d3431;
+      --accent-gold: #e2c08d;
+      --text-main: #f5f2eb;
+      --text-muted: #a89f91;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 16px;
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      color: var(--accent-gold);
+      font-size: 20px;
+      margin: 0 0 6px 0;
+      letter-spacing: 0.5px;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-gold);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .btn-option {
+      background: #332b28;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 12px 8px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .btn-option.active {
+      background: var(--accent-gold);
+      color: var(--bg-color);
+      border-color: var(--accent-gold);
+      font-weight: 600;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #332b28;
+      border: 1px solid var(--border-color);
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+
+    .checkbox-item input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent-gold);
+    }
+
+    input[type="date"], input[type="time"] {
+      width: 100%;
+      background: #332b28;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--accent-gold);
+      color: var(--bg-color);
+      border: none;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>✦ REALTY ESTATE ✦</h1>
+    <p>Запись на просмотр квартиры</p>
+  </div>
+
+  <!-- 1. Выбор комнат -->
+  <div class="card">
+    <div class="section-title">1. Сколько комнат?</div>
+    <div class="grid-4">
+      <div class="btn-option" onclick="selectRooms(this, 'Студия')">Студия</div>
+      <div class="btn-option" onclick="selectRooms(this, '1-комнатная')">1-комнатная</div>
+      <div class="btn-option" onclick="selectRooms(this, '2-комнатная')">2-комнатная</div>
+      <div class="btn-option" onclick="selectRooms(this, '3+ комнатная')">3+ комнатная</div>
+    </div>
+  </div>
+
+  <!-- 2. Проживающие -->
+  <div class="card">
+    <div class="section-title">2. Состав проживающих</div>
+    <div class="checkbox-group">
+      <label class="checkbox-item">
+        <span>Будут ли дети?</span>
+        <input type="checkbox" id="hasChildren">
+      </label>
+      <label class="checkbox-item">
+        <span>Будут ли животные?</span>
+        <input type="checkbox" id="hasPets">
+      </label>
+    </div>
+  </div>
+
+  <!-- 3. Дата и
+
+
+время -->
+  <div class="card">
+    <div class="section-title">3. Дата и время просмотра</div>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <input type="date" id="viewDate">
+      <input type="time" id="viewTime">
+    </div>
+  </div>
+
+  <button class="submit-btn" onclick="submitBooking()">ЗАПИСАТЬСЯ НА ОСМОТР</button>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    let selectedRooms = '';
+
+    function selectRooms(element, rooms) {
+      document.querySelectorAll('.grid-4 .btn-option').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+      selectedRooms = rooms;
+    }
+
+    function submitBooking() {
+      const hasChildren = document.getElementById('hasChildren').checked ? 'Да' : 'Нет';
+      const hasPets = document.getElementById('hasPets').checked ? 'Да' : 'Нет';
+      const date = document.getElementById('viewDate').value;
+      const time = document.getElementById('viewTime').value;
+
+      if (!selectedRooms) {
+        alert('Пожалуйста, выберите количество комнат!');
+        return;
+      }
+      if (!date || !time) {
+        alert('Пожалуйста, выберите дату и время!');
+        return;
+      }
+
+      const bookingData = {
+        rooms: selectedRooms,
+        children: hasChildren,
+        pets: hasPets,
+        date: date,
+        time: time
+      };
+
+      tg.sendData(JSON.stringify(bookingData));
+    }
+  </script>
+</body>
+</html>
